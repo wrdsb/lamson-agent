@@ -56,22 +56,31 @@ function lamson_client_post_edit_meta( $meta_boxes ) {
 function lamson_client_publish_post_hook($ID, $post) {
 	$obj_to_post = buildLamsonWPPost($ID, $post);
 
-	$lamson_send_notification = get_post_meta($post->ID, 'lamson_send_notification', true);
-	if (! $lamson_send_notification) {
+	if (! empty($_POST['lamson_send_notification'])) {
 		$lamson_send_notification = $_POST['lamson_send_notification'];
+	} else {
+		$lamson_send_notification = get_post_meta($post->ID, 'lamson_send_notification', true);
 	}
+
+	if ($lamson_send_notification !== 'yes' && $lamson_send_notification !== 'no') {
+		$lamson_send_notification = 'no';
+	}
+
 	$obj_to_post['lamson_send_notification'] = $lamson_send_notification;
 
 	$syndication_targets = [];
-	$lamson_syndication_targets = get_post_meta($post->ID, 'lamson_syndication_targets', false);
-	if (! $lamson_syndication_targets) {
+	if (! empty($_POST['lamson_syndication_targets'])) {
 		$lamson_syndication_targets = $_POST['lamson_syndication_targets'];
+	} else {
+		$lamson_syndication_targets = get_post_meta($post->ID, 'lamson_syndication_targets', false);
 	}
+
 	if ($lamson_syndication_targets) {
 		foreach ($lamson_syndication_targets as $target) {
 			$syndication_targets[] = $target;
 		}
 	}
+
 	$obj_to_post['lamson_syndication_targets'] = $syndication_targets;
 
 	$result = lamson_client_post_request($obj_to_post);
@@ -196,8 +205,8 @@ function sendNotificationOptions($prefix) {
 		'desc' => esc_html__( 'When the "Publish" (or "Update") button is pressed, send a copy of this post to this site\'s email notification subscribers.', 'default' ),
 		'placeholder' => '',
 		'options' => array(
-			'true' => 'Yes',
-			'false' => 'No',
+			'yes' => 'Yes',
+			'no' => 'No',
 		),
 		'inline' => 'true',
 		'std' => 'true',
