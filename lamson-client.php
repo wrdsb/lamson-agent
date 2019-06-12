@@ -31,7 +31,10 @@ function lamson_client_post_edit_meta($meta_boxes)
 
     $fields = array();
     if ($lamson_features["email_notification_toggle"]) {
-        $fields[] = sendNotificationOptions($prefix);
+        $fields[] = sendNotificationToggle($prefix);
+    }
+    if ($lamson_features["post_syndication_options"] || $lamson_features["test_syndication_options"]) {
+        $fields[] = syndicationToggle($prefix);
     }
     if ($lamson_features["post_syndication_options"]) {
         $fields[] = miscSyndicationOptions($prefix);
@@ -71,19 +74,24 @@ function lamson_client_publish_post_hook($ID, $post)
 
     $obj_to_post['lamson_send_notification'] = $lamson_send_notification;
 
-    $syndication_targets = [];
-    if (! empty($_POST['lamson_syndication_targets'])) {
+    if (! empty($_POST['lamson_do_syndication'])) {
+        $lamson_do_syndication = $_POST['lamson_do_syndication'];
         $lamson_syndication_targets = $_POST['lamson_syndication_targets'];
     } else {
+        $lamson_do_syndication = get_post_meta($post->ID, 'lamson_do_syndication', true);
         $lamson_syndication_targets = get_post_meta($post->ID, 'lamson_syndication_targets', false);
     }
 
-    if ($lamson_syndication_targets) {
-        foreach ($lamson_syndication_targets as $target) {
-            $syndication_targets[] = $target;
-        }
+    if ($lamson_do_syndication !== 'yes' && $lamson_do_syndication !== 'no') {
+        $lamson_do_syndication = 'no';
     }
 
+    $syndication_targets = [];
+    foreach ($lamson_syndication_targets as $target) {
+        $syndication_targets[] = $target;
+    }
+
+    $obj_to_post['lamson_do_syndication'] = $lamson_do_syndication;
     $obj_to_post['lamson_syndication_targets'] = $syndication_targets;
 
     $result = lamson_client_post_request($obj_to_post);
@@ -100,6 +108,7 @@ function buildLamsonWPPost($ID, $post)
     $site_slug = str_replace('/', '', $site_details->path);
     $site_link = get_bloginfo('url');
     $site_name = get_bloginfo('name');
+    $site_privacy = get_option('blog_public');
 
     if ($site_slug == '') {
         $site_slug = 'top';
@@ -156,6 +165,7 @@ function buildLamsonWPPost($ID, $post)
         'site_slug' => $site_slug,
         'site_name' => $site_name,
         'site_link' => $site_link,
+        'site_privacy' => $site_privacy,
     ];
 
     $post_categories = [];
@@ -175,6 +185,37 @@ function buildLamsonWPPost($ID, $post)
         }
     }
     $obj_to_post['post_tags'] = $post_tags;
+
+    $visible_to = [];
+    switch ($obj_to_post->site_privacy) {
+        case '-1':
+            $visible_to.push("${site_domain}:members");
+            $visible_to.push("${site_url}:members");
+            $visible_to.push("${site_url}:admins");
+            break;
+        case '-2':
+            $visible_to.push("${site_url}:members");
+            $visible_to.push("${site_url}:admins");
+            break;
+        case '-3':
+            $visible_to.push("${site_url}:admins");
+            break;
+        case '0':
+            $visible_to.push("${site_domain}:members");
+            $visible_to.push("${site_url}:members");
+            $visible_to.push("${site_url}:admins");
+            $visible_to.push("public");
+            break;
+        case '1':
+            $visible_to.push("${site_domain}:members");
+            $visible_to.push("${site_url}:members");
+            $visible_to.push("${site_url}:admins");
+            $visible_to.push("public");
+            break;
+        default:
+            break;
+    }
+    $obj_to_post->visible_to = $visible_to;
 
     return $obj_to_post;
 }
@@ -202,7 +243,7 @@ function lamson_client_post_request($obj_to_post)
     }
 }
 
-function sendNotificationOptions($prefix)
+function sendNotificationToggle($prefix)
 {
     return array(
         'id' => $prefix . 'send_notification',
@@ -215,7 +256,24 @@ function sendNotificationOptions($prefix)
             'no' => 'No',
         ),
         'inline' => 'true',
-        'std' => 'true',
+        'std' => 'yes',
+    );
+}
+
+function syndicationToggle($prefix)
+{
+    return array(
+        'id' => $prefix . 'do_syndication',
+        'name' => esc_html__('Syndicate post?', 'default'),
+        'type' => 'radio',
+        'desc' => esc_html__('When the "Publish" (or "Update") button is pressed, syndicate a copy of this post to the sites below.', 'default'),
+        'placeholder' => '',
+        'options' => array(
+            'yes' => 'Yes',
+            'no' => 'No',
+        ),
+        'inline' => 'true',
+        'std' => 'yes',
     );
 }
 
