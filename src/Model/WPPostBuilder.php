@@ -1,26 +1,30 @@
 <?php
-namespace WRDSB\Lamson\Model;
+namespace Lamson\Model;
+
+use Lamson\Model\WPPost as LamsonPost;
+use Lamson\Model\WPSite as LamsonSite;
+
+use WP\Model\Post as WPPost;
+use WP\Model\Site as WPSite;
 
 /**
- * The admin-specific functionality of the plugin.
+ * Define the "WPPostBuilder" Model
  *
- * @link       https://github.com/wrdsb
- * @since      1.0.0
- *
- * @package    WRDSB_Lamson
+ * @package    Lamson
+ * @subpackage Lamson/Model
  */
 
-/**
- * The admin-specific functionality of the plugin.
- *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
- * @package    WRDSB_Lamson
- * @author     WRDSB <website@wrdsb.ca>
- */
-class Post
+class WPPostBuilder
 {
+    /** @var WPSite $site */
+    private $wpSite;
+
+    /** @var WPPost $post */
+    private $wpPost;
+
+    /** @var LamsonPost $postID */
+    private $lamsonPost;
+
     /**
      * Someting
      *
@@ -28,8 +32,27 @@ class Post
      *
      * @since    1.0.0
      */
-    public function __construct($data)
+    public function __construct()
     {
+    }
+
+    public function build(WPSite $site, WPPost $post): LamsonPost
+    {
+        $this->wpSite = $site;
+        $this->wpPost = $post;
+
+        $properties = $this->fromPost($this->wpPost);
+
+        $this->initLamsonPost();
+        $this->populateLamsonPost($properties);
+
+        return $this->lamsonPost;
+    }
+
+    private function fromPost(): array
+    {
+        $post = array();
+
         $site_details = get_blog_details(get_current_blog_id());
 
         $site_url = str_replace('http://', '', site_url());
@@ -58,9 +81,6 @@ class Post
         $this->post_type = $data->post_type;
 
         $this->post_status = $data->post_status;
-
-        // Probably not a good idea to include this field:
-        //'post_password' => $data->post_password,
 
         $this->post_date     = $data->post_date;
         $this->post_date_gmt = $data->post_date_gmt;
@@ -145,59 +165,55 @@ class Post
                 break;
         }
         $this->visible_to = $visible_to;
+
+        return $post;
     }
 
-    public function sendToService($ID, $post)
+    private function fromJSON(string $jsonString)
     {
-        if (! empty($_POST['lamson_send_notification'])) {
-            $lamson_send_notification = $_POST['lamson_send_notification'];
-        } else {
-            $lamson_send_notification = get_post_meta($post->ID, 'lamson_send_notification', true);
-        }
-    
-        if ($lamson_send_notification !== 'yes' && $lamson_send_notification !== 'no') {
-            $lamson_send_notification = 'no';
-        }
-    
-        $obj_to_post['lamson_send_notification'] = $lamson_send_notification;
-    
-        if (! empty($_POST['lamson_do_syndication'])) {
-            $lamson_do_syndication = $_POST['lamson_do_syndication'];
-            $lamson_syndication_targets = $_POST['lamson_syndication_targets'];
-        } else {
-            $lamson_do_syndication = get_post_meta($post->ID, 'lamson_do_syndication', true);
-            $lamson_syndication_targets = get_post_meta($post->ID, 'lamson_syndication_targets', false);
-        }
-    
-        if ($lamson_do_syndication !== 'yes' && $lamson_do_syndication !== 'no') {
-            $lamson_do_syndication = 'no';
-        }
-    
-        $syndication_targets = [];
-        foreach ($lamson_syndication_targets as $target) {
-            $syndication_targets[] = $target;
-        }
-    
-        $obj_to_post['lamson_do_syndication'] = $lamson_do_syndication;
-        $obj_to_post['lamson_syndication_targets'] = $syndication_targets;
-    
-        $post_type = $this->post_type;
-        $encoded_obj = json_encode($this);
-    
-        $request = array(
-            'headers' => array(
-                'Content-Type' => 'application/json',
-            ),
-            'body' => $encoded_obj
-        );
-    
-        switch ($post_type) {
-            case 'post':
-                return wp_remote_post(LAMSON_CLIENT_WP_POSTS_POST, $request);
-                break;
-            case 'page':
-                return wp_remote_post(LAMSON_CLIENT_WP_PAGES_POST, $request);
-                break;
-        }
+    }
+
+    private function fromArray(array $array)
+    {
+    }
+
+    private function initLamsonPost(string $siteDomain, int $siteID, int $postID)
+    {
+        $this->lamsonPost = new LamsonPost($siteDomain, $siteID, $postID);
+    }
+
+    private function populateLamsonPost(array $properties)
+    {
+        $this->lamsonPost->setSiteSlug($properties['slug']);
+        $this->lamsonPost->setSiteName($properties['siteName']);
+        $this->lamsonPost->setPostSlug($properties['postSlug']);
+        $this->lamsonPost->setPostPermalink($properties['postPermalink']);
+        $this->lamsonPost->setPostGUID($properties['postGUID']);
+        $this->lamsonPost->setPostType($properties['postType']);
+        $this->lamsonPost->setPostStatus($properties['postStatus']);
+        $this->lamsonPost->setPostDate($properties['postDate']);
+        $this->lamsonPost->setPostDateGMT($properties['postDateGMT']);
+        $this->lamsonPost->setPostModified($properties['postModified']);
+        $this->lamsonPost->setPostModifiedGMT($properties['postModifiedGMT']);
+        $this->lamsonPost->setPostAuthorID($properties['postAuthorID']);
+        $this->lamsonPost->setPostAuthorName($properties['postAuthorName']);
+        $this->lamsonPost->setPostAuthorEmail($properties['postAuthorEmail']);
+        $this->lamsonPost->setPostTitle($properties['postTitle']);
+        $this->lamsonPost->setPostContent($properties['postContent']);
+        $this->lamsonPost->setPostExcerpt($properties['postExcerpt']);
+        $this->lamsonPost->setPostParent($properties['postParent']);
+        $this->lamsonPost->setPostMenuOrder($properties['postMenuOrder']);
+        $this->lamsonPost->setCommentStatus($properties['commentStatus']);
+        $this->lamsonPost->setCommentCount($properties['commentCount']);
+        $this->lamsonPost->setPingStatus($properties['pingStatus']);
+        $this->lamsonPost->setPinged($properties['pinged']);
+        $this->lamsonPost->setToPing($properties['toPing']);
+        $this->lamsonPost->setPostFilter($properties['postFilter']);
+        $this->lamsonPost->setPostContentFiltered($properties['postContentFiltered']);
+        $this->lamsonPost->setPostMimeType($properties['postMimeType']);
+        $this->lamsonPost->setPostCategories($properties['postCategories']);
+        $this->lamsonPost->setPostTags($properties['postTags']);
+        $this->lamsonPost->setLamsonSendNotification($properties['lamsonSendNotification']);
+        $this->lamsonPost->setLamsonSyndicationTargets($properties['lamsonSyndicationTargets']);
     }
 }

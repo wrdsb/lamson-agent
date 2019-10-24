@@ -11,7 +11,7 @@ class Posts extends WP_REST_Controller
         $version = '1';
         $namespace = 'lamson/v' . $version;
         $base = 'posts';
-        register_rest_route( $namespace, '/' . $base, array(
+        register_rest_route($namespace, '/' . $base, array(
             array(
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => array( $this, 'getItems' ),
@@ -25,8 +25,8 @@ class Posts extends WP_REST_Controller
                 'permission_callback' => array( $this, 'createItemPermissionsCheck' ),
                 'args'                => $this->get_endpoint_args_for_item_schema(true),
             ),
-        ) );
-        register_rest_route( $namespace, '/' . $base . '/(?P<id>[\d]+)', array(
+        ));
+        register_rest_route($namespace, '/' . $base . '/(?P<id>[\d]+)', array(
             array(
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => array( $this, 'getItem' ),
@@ -53,11 +53,11 @@ class Posts extends WP_REST_Controller
                     ),
                 ),
             ),
-        ) );
-        register_rest_route( $namespace, '/' . $base . '/schema', array(
+        ));
+        register_rest_route($namespace, '/' . $base . '/schema', array(
             'methods'         => WP_REST_Server::READABLE,
             'callback'        => array( $this, 'getPublicItemSchema' ),
-        ) );
+        ));
     }
 
     /**
