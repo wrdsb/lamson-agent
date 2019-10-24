@@ -1,18 +1,24 @@
 {
-    "name": "wrdsb/lamson",
+    "name": "lamson/client",
     "description": "Client for Lamson service.",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
     "authors": [
         {
-            "name": "WRDSB",
-            "email": "website@wrdsb.ca"
+            "name": "James Schumann",
+            "email": "james@schumann.ca"
         }
     ],
     "autoload": {
-        "psr-4": {"WRDSB\\Lamson\\": "src/"}
+        "psr-4": {
+            "Lamson\\": "src/Lamson/",
+            "WordPress\\": "src/WordPress/"
+        }
     },
     "require": {
         "pimple/pimple": "^3.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8"
     }
 }
