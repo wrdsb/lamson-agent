@@ -1,5 +1,5 @@
 <?php
-namespace WRDSB\Lamson;
+namespace Lamson;
 
 /**
  * Fired when the plugin is uninstalled.

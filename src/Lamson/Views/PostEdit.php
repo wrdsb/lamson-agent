@@ -1,24 +1,6 @@
 <?php
-namespace WRDSB\Lamson\Views;
+namespace Lamson\Views;
 
-/**
- * The admin-specific functionality of the plugin.
- *
- * @link       https://github.com/wrdsb
- * @since      1.0.0
- *
- * @package    WRDSB_Lamson
- */
-
-/**
- * The admin-specific functionality of the plugin.
- *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
- *
- * @package    WRDSB_Lamson
- * @author     WRDSB <website@wrdsb.ca>
- */
 class PostEdit
 {
     /**

@@ -1,9 +1,9 @@
 <?php
-namespace WRDSB\Lamson;
+namespace Lamson;
 
-use \WRDSB\Lamson\Model as Model;
-use \WRDSB\Lamson\Views as Views;
-use \WRDSB\Lamson\Controllers as Controllers;
+use Lamson\Model as Model;
+use Lamson\Views as Views;
+use Lamson\Controllers as Controllers;
 
 /**
  * The plugin bootstrap file
@@ -46,7 +46,7 @@ $container = Plugin::getContainer();
  * Current plugin name.
  * Change this to your plugin's slug.
  */
-$container['plugin_slug'] = 'wrdsb-lamson';
+$container['plugin_slug'] = 'lamson-agent';
 
 /**
  * Current plugin version.
@@ -79,11 +79,11 @@ $container['Plugin'] = function ($c) {
  */
 $plugin = $container['Plugin'];
 
-$plugin->add_action('publish_post', 'WRDSB\Lamson\Model\Post', 'sendToService', $container['plugin_priority'], 2);
-$plugin->add_action('publish_page', 'WRDSB\Lamson\Model\Post', 'sendToService', $container['plugin_priority'], 2);
+$plugin->add_action('publish_post', 'Lamson\Model\Post', 'sendToService', $container['plugin_priority'], 2);
+$plugin->add_action('publish_page', 'Lamson\Model\Post', 'sendToService', $container['plugin_priority'], 2);
 
-$plugin->add_action('rest_api_init', 'WRDSB\Lamson\Controllers\Posts', 'registerRoutes');
+$plugin->add_action('rest_api_init', 'Lamson\Controllers\Posts', 'registerRoutes');
 
-$plugin->addFilter('rwmb_meta_boxes', 'WRDSB\Lamson\Views', 'PostEdit', 'addMetaBoxes');
+$plugin->addFilter('rwmb_meta_boxes', 'Lamson\Views', 'PostEdit', 'addMetaBoxes');
 
 $plugin->registerHooks();

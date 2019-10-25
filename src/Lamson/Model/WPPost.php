@@ -28,8 +28,8 @@ class WPPost implements \JsonSerializable
     /** @var string $siteName */
     private $siteName;
 
-    /** @var string $postslug */
-    private $postslug;
+    /** @var string $postSlug */
+    private $postSlug;
 
     /** @var string $postPermalink */
     private $postPermalink;
@@ -110,8 +110,8 @@ class WPPost implements \JsonSerializable
 
     // TODO: PostTag class and PostTagsCollection class
 
-    /** @var array $postTags */
-    private $postTags;
+    /** @var array $tags */
+    private $tags;
 
     /** @var int $sitePrivacy */
     private $sitePrivacy;
@@ -335,7 +335,7 @@ class WPPost implements \JsonSerializable
     {
         return $this->postAuthorID;
     }
-    public function setPostAuthorID(number $postAuthorID)
+    public function setPostAuthorID(int $postAuthorID)
     {
         $this->postAuthorID = $postAuthorID;
     }
@@ -389,7 +389,7 @@ class WPPost implements \JsonSerializable
     {
         return $this->postParent;
     }
-    public function setPostParent(number $postParent)
+    public function setPostParent(int $postParent)
     {
         $this->postParent = $postParent;
     }
@@ -484,13 +484,13 @@ class WPPost implements \JsonSerializable
         $this->postCategories = $postCategories;
     }
 
-    public function getPostTags(): array
+    public function getTags(): array
     {
-        return $this->postTags;
+        return $this->tags;
     }
-    public function setPostTags(array $postTags)
+    public function setTags(array $tags)
     {
-        $this->postTags = $postTags;
+        $this->tags = $tags;
     }
 
     public function getLamsonSendNotification(): boolean

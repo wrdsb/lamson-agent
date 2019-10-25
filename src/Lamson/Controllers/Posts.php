@@ -1,5 +1,5 @@
 <?php
-namespace WRDSB\Lamson\Controllers;
+namespace Lamson\Controllers;
 
 class Posts extends WP_REST_Controller
 {
