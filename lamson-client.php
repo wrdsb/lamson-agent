@@ -377,6 +377,7 @@ function elementarySchoolOptions($prefix)
             'schools-dpk' => 'Driftwood Park',
 
             'schools-est' => 'Edna Staebler',
+            'schools-erl' => 'Elementary Remote Learning',
             'schools-elg' => 'Elgin Street',
             'schools-elz' => 'Elizabeth Ziegler',
             'schools-emp' => 'Empire',
