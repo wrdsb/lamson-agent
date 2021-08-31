@@ -10,6 +10,14 @@
 */
 define('LAMSON_CLIENT_PRIORITY', 12838790321);
 
+function lamson_controllers_init()
+{
+    require_once dirname(__FILE__) . "/controllers/LamsonWPPostsAPIController.php";
+    $plugins_api = new LamsonWPPostsAPIController;
+    $plugins_api->register_routes();
+}
+add_action('rest_api_init', 'lamson_controllers_init');
+
 function lamson_client_init()
 {
     lamson_client_register_hooks();
@@ -18,48 +26,15 @@ add_action('init', 'lamson_client_init');
 
 function lamson_client_register_hooks()
 {
-    add_action('publish_post', 'lamson_client_publish_post_hook', LAMSON_CLIENT_PRIORITY, 2);
-    add_action('publish_page', 'lamson_client_publish_post_hook', LAMSON_CLIENT_PRIORITY, 2);
+    add_action('transition_post_status', 'lamson_client_transition_post_status_hook', 10, 3);
 
     add_filter('rwmb_meta_boxes', 'lamson_client_post_edit_meta');
 }
 
-function lamson_client_post_edit_meta($meta_boxes)
+function lamson_client_transition_post_status_hook($new_status, $old_status, $post)
 {
-    $prefix = 'lamson_';
-    $lamson_features = (LAMSON_FEATURE_FLAGS) ? LAMSON_FEATURE_FLAGS : array();
+    $ID = $post->ID;
 
-    $fields = array();
-    if ($lamson_features["email_notification_toggle"]) {
-        $fields[] = sendNotificationToggle($prefix);
-    }
-    if ($lamson_features["post_syndication_options"] || $lamson_features["test_syndication_options"]) {
-        $fields[] = syndicationToggle($prefix);
-    }
-    if ($lamson_features["post_syndication_options"]) {
-        $fields[] = miscSyndicationOptions($prefix);
-        $fields[] = secondarySchoolOptions($prefix);
-        $fields[] = elementarySchoolOptions($prefix);
-    }
-    if ($lamson_features["test_syndication_options"]) {
-        $fields[] = testSyndicationOptions($prefix);
-    }
-
-    $meta_boxes[] = array(
-        'id' => 'notificationsandsyndication',
-        'title' => esc_html__('Notifications and Syndication', 'default'),
-        'post_types' => array('post'),
-        'context' => 'after_editor',
-        'priority' => 'default',
-        'autosave' => 'true',
-        'fields' => $fields,
-    );
-
-    return $meta_boxes;
-}
-
-function lamson_client_publish_post_hook($ID, $post)
-{
     $obj_to_post = buildLamsonWPPost($ID, $post);
 
     if (! empty($_POST['lamson_send_notification'])) {
@@ -94,7 +69,44 @@ function lamson_client_publish_post_hook($ID, $post)
     $obj_to_post['lamson_do_syndication'] = $lamson_do_syndication;
     $obj_to_post['lamson_syndication_targets'] = $syndication_targets;
 
-    $result = lamson_client_post_request($obj_to_post);
+    $obj_to_post['lamson_old_status'] = $old_status;
+    $obj_to_post['lamson_new_status'] = $new_status;
+
+    $result = lamson_hook_transition_post_status_request($obj_to_post);
+}
+
+function lamson_client_post_edit_meta($meta_boxes)
+{
+    $prefix = 'lamson_';
+    $lamson_features = (LAMSON_FEATURE_FLAGS) ? LAMSON_FEATURE_FLAGS : array();
+
+    $fields = array();
+    if ($lamson_features["email_notification_toggle"]) {
+        $fields[] = sendNotificationToggle($prefix);
+    }
+    if ($lamson_features["post_syndication_options"] || $lamson_features["test_syndication_options"]) {
+        $fields[] = syndicationToggle($prefix);
+    }
+    if ($lamson_features["post_syndication_options"]) {
+        $fields[] = miscSyndicationOptions($prefix);
+        $fields[] = secondarySchoolOptions($prefix);
+        $fields[] = elementarySchoolOptions($prefix);
+    }
+    if ($lamson_features["test_syndication_options"]) {
+        $fields[] = testSyndicationOptions($prefix);
+    }
+
+    $meta_boxes[] = array(
+        'id' => 'notificationsandsyndication',
+        'title' => esc_html__('Notifications and Syndication', 'default'),
+        'post_types' => array('post'),
+        'context' => 'after_editor',
+        'priority' => 'default',
+        'autosave' => 'true',
+        'fields' => $fields,
+    );
+
+    return $meta_boxes;
 }
 
 function buildLamsonWPPost($ID, $post)
@@ -220,9 +232,8 @@ function buildLamsonWPPost($ID, $post)
     return $obj_to_post;
 }
 
-function lamson_client_post_request($obj_to_post)
+function lamson_hook_transition_post_status_request($obj_to_post)
 {
-    $post_type = $obj_to_post['post_type'];
     $encoded_obj = json_encode($obj_to_post);
 
     $request = array(
@@ -233,14 +244,7 @@ function lamson_client_post_request($obj_to_post)
         'body' => $encoded_obj
     );
 
-    switch ($post_type) {
-        case 'post':
-            return wp_remote_post(LAMSON_CLIENT_WP_POSTS_POST, $request);
-            break;
-        case 'page':
-            return wp_remote_post(LAMSON_CLIENT_WP_PAGES_POST, $request);
-            break;
-    }
+    return wp_remote_post(LAMSON_HOOK_TRANSITION_POST_STATUS, $request);
 }
 
 function sendNotificationToggle($prefix)
@@ -285,6 +289,11 @@ function miscSyndicationOptions($prefix)
         'type'    => 'checkbox_list',
         // Options of checkboxes, in format 'value' => 'Label'
         'options' => array(
+            'www-labour'                    => 'Labour',
+            'www-pic'                       => 'PIC',
+            'schools-athome'                => 'WRDSB@Home',
+            'schools-alternative-education' => 'Alt. Ed.',
+            'schools-continuing-education'  => 'Con. Ed.',
             'schools-all'        => 'All Schools',
             'schools-elementary' => 'Elementary Schools',
             'schools-secondary'  => 'Secondary Schools',
