@@ -1,0 +1,8 @@
+{
+    "name": "wrdsb/lamson-agent",
+    "type": "wordpress-plugin",
+    "license": "GPL-3.0-or-later",
+    "require-dev": {
+        "pestphp/pest": "^1.18"
+    }
+}
