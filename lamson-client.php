@@ -10,29 +10,26 @@
 */
 define('LAMSON_CLIENT_PRIORITY', 12838790321);
 
-function lamson_controllers_init()
-{
+add_action('rest_api_init', 'lamson_controllers_init');
+add_action('init', 'lamson_client_init');
+
+
+function lamson_controllers_init() {
     require_once dirname(__FILE__) . "/controllers/LamsonWPPostsAPIController.php";
     $plugins_api = new LamsonWPPostsAPIController;
     $plugins_api->register_routes();
 }
-add_action('rest_api_init', 'lamson_controllers_init');
 
-function lamson_client_init()
-{
+function lamson_client_init() {
     lamson_client_register_hooks();
 }
-add_action('init', 'lamson_client_init');
 
-function lamson_client_register_hooks()
-{
+function lamson_client_register_hooks() {
     add_action('transition_post_status', 'lamson_client_transition_post_status_hook', 10, 3);
-
     add_filter('rwmb_meta_boxes', 'lamson_client_post_edit_meta');
 }
 
-function lamson_client_transition_post_status_hook($new_status, $old_status, $post)
-{
+function lamson_client_transition_post_status_hook($new_status, $old_status, $post) {
     $ID = $post->ID;
 
     $obj_to_post = buildLamsonWPPost($ID, $post);
@@ -75,8 +72,7 @@ function lamson_client_transition_post_status_hook($new_status, $old_status, $po
     $result = lamson_hook_transition_post_status_request($obj_to_post);
 }
 
-function lamson_client_post_edit_meta($meta_boxes)
-{
+function lamson_client_post_edit_meta($meta_boxes) {
     $prefix = 'lamson_';
     $lamson_features = (LAMSON_FEATURE_FLAGS) ? LAMSON_FEATURE_FLAGS : array();
 
@@ -109,8 +105,7 @@ function lamson_client_post_edit_meta($meta_boxes)
     return $meta_boxes;
 }
 
-function buildLamsonWPPost($ID, $post)
-{
+function buildLamsonWPPost($ID, $post) {
     $site_details = get_blog_details(get_current_blog_id());
 
     $site_url = str_replace('http://', '', site_url());
@@ -232,8 +227,7 @@ function buildLamsonWPPost($ID, $post)
     return $obj_to_post;
 }
 
-function lamson_hook_transition_post_status_request($obj_to_post)
-{
+function lamson_hook_transition_post_status_request($obj_to_post) {
     $encoded_obj = json_encode($obj_to_post);
 
     $request = array(
@@ -247,8 +241,7 @@ function lamson_hook_transition_post_status_request($obj_to_post)
     return wp_remote_post(LAMSON_HOOK_TRANSITION_POST_STATUS, $request);
 }
 
-function sendNotificationToggle($prefix)
-{
+function sendNotificationToggle($prefix) {
     return array(
         'id' => $prefix . 'send_notification',
         'name' => esc_html__('Notify email subscribers?', 'default'),
@@ -264,8 +257,7 @@ function sendNotificationToggle($prefix)
     );
 }
 
-function syndicationToggle($prefix)
-{
+function syndicationToggle($prefix) {
     return array(
         'id' => $prefix . 'do_syndication',
         'name' => esc_html__('Syndicate post?', 'default'),
@@ -281,8 +273,7 @@ function syndicationToggle($prefix)
     );
 }
 
-function miscSyndicationOptions($prefix)
-{
+function miscSyndicationOptions($prefix) {
     return array(
         'id'      => $prefix . 'syndication_targets',
         'name'    => 'Schools',
@@ -301,8 +292,7 @@ function miscSyndicationOptions($prefix)
     );
 }
 
-function testSyndicationOptions($prefix)
-{
+function testSyndicationOptions($prefix) {
     return array(
         'id'      => $prefix . 'syndication_targets',
         'name'    => 'Testing',
@@ -316,8 +306,7 @@ function testSyndicationOptions($prefix)
     );
 }
 
-function secondarySchoolOptions($prefix)
-{
+function secondarySchoolOptions($prefix) {
     return array(
         'id'      => $prefix . 'syndication_targets',
         'name'    => 'Secondary Schools',
@@ -348,8 +337,7 @@ function secondarySchoolOptions($prefix)
     );
 }
 
-function elementarySchoolOptions($prefix)
-{
+function elementarySchoolOptions($prefix) {
     return array(
         'id'      => $prefix . 'syndication_targets',
         'name'    => 'Elementary Schools',
