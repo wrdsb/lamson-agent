@@ -5,7 +5,7 @@
 * Description: Provides a set of webhooks and API endpoints for interacting with the Lamson service.
 * Author: WRDSB
 * Author URI: https://github.com/wrdsb
-* Version: 1.0.0
+* Version: 1.0.2
 * License: GPLv3 or later
 */
 define('LAMSON_CLIENT_PRIORITY', 12838790321);
