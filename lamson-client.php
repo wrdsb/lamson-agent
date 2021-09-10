@@ -25,7 +25,7 @@ function lamson_client_init() {
 }
 
 function lamson_client_register_hooks() {
-    add_action('save_post', 'lamson_client_save_post_hook', 10, 3);
+    add_action('save_post', 'lamson_client_save_post_hook', 999, 3);
     add_filter('rwmb_meta_boxes', 'lamson_client_post_edit_meta');
 }
 
@@ -63,9 +63,6 @@ function lamson_client_save_post_hook($ID, $post, $update) {
 
     $obj_to_post['lamson_do_syndication'] = $lamson_do_syndication;
     $obj_to_post['lamson_syndication_targets'] = $syndication_targets;
-
-    $obj_to_post['lamson_old_status'] = $old_status;
-    $obj_to_post['lamson_new_status'] = $new_status;
 
     $result = lamson_hook_transition_post_status_request($obj_to_post);
 }
@@ -123,17 +120,8 @@ function buildLamsonWPPost($ID, $post) {
     $post_author_name = $author_details->first_name.' '.$author_details->last_name;
     $post_author_email = $author_details->user_email;
 
-    $obj_to_post = [];
-
-    // Start with meta so it can be overwritten as needed
-    $allMeta = get_post_meta($post->ID);
-    foreach($allMeta as $key => $val) {
-        if (count($val) == 1) {
-            $obj_to_post[$key] = $val[0];
-        } else {
-            $obj_to_post[$key] = json_encode($val);
-        }
-    }
+    // Start with the $_POST array to catch all meta data
+    $obj_to_post = $_POST;
 
     $obj_to_post['id'] = $site_domain.'_'.$site_slug.'_'.$post->ID;
 
@@ -205,35 +193,35 @@ function buildLamsonWPPost($ID, $post) {
 
 
     $visible_to = [];
-    switch ($obj_to_post->site_privacy) {
+    switch ($obj_to_post['site_privacy']) {
         case '-1':
-            $visible_to.push("${site_domain}:members");
-            $visible_to.push("${site_url}:members");
-            $visible_to.push("${site_url}:admins");
+            $visible_to[] = "${site_domain}:members";
+            $visible_to[] = "${site_url}:members";
+            $visible_to[] = "${site_url}:admins";
             break;
         case '-2':
-            $visible_to.push("${site_url}:members");
-            $visible_to.push("${site_url}:admins");
+            $visible_to[] = "${site_url}:members";
+            $visible_to[] = "${site_url}:admins";
             break;
         case '-3':
-            $visible_to.push("${site_url}:admins");
+            $visible_to[] = "${site_url}:admins";
             break;
         case '0':
-            $visible_to.push("${site_domain}:members");
-            $visible_to.push("${site_url}:members");
-            $visible_to.push("${site_url}:admins");
-            $visible_to.push("public");
+            $visible_to[] = "${site_domain}:members";
+            $visible_to[] = "${site_url}:members";
+            $visible_to[] = "${site_url}:admins";
+            $visible_to[] = "public";
             break;
         case '1':
-            $visible_to.push("${site_domain}:members");
-            $visible_to.push("${site_url}:members");
-            $visible_to.push("${site_url}:admins");
-            $visible_to.push("public");
+            $visible_to[] = "${site_domain}:members";
+            $visible_to[] = "${site_url}:members";
+            $visible_to[] = "${site_url}:admins";
+            $visible_to[] = "public";
             break;
         default:
             break;
     }
-    $obj_to_post->visible_to = $visible_to;
+    $obj_to_post['visible_to'] = $visible_to;
 
     return $obj_to_post;
 }
