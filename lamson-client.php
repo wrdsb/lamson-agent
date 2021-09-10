@@ -25,13 +25,11 @@ function lamson_client_init() {
 }
 
 function lamson_client_register_hooks() {
-    add_action('transition_post_status', 'lamson_client_transition_post_status_hook', 10, 3);
+    add_action('save_post', 'lamson_client_save_post_hook', 10, 3);
     add_filter('rwmb_meta_boxes', 'lamson_client_post_edit_meta');
 }
 
-function lamson_client_transition_post_status_hook($new_status, $old_status, $post) {
-    $ID = $post->ID;
-
+function lamson_client_save_post_hook($ID, $post, $update) {
     $obj_to_post = buildLamsonWPPost($ID, $post);
 
     if (! empty($_POST['lamson_send_notification'])) {
