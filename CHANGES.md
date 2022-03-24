@@ -1,3 +1,6 @@
+### 1.0.3
++ Add Oak Creek Public School to school list
+
 ### 1.0.2
 + Add all post meta to outgoing post objects
 
