@@ -430,6 +430,8 @@ function elementarySchoolOptions($prefix) {
             'schools-pre' => 'Preston',
             'schools-pru' => 'Prueter',
 
+            'schools-oak' => 'Oak Creek',
+
             'schools-qel' => 'Queen Elizabeth',
             'schools-qsm' => 'Queensmount',
 
